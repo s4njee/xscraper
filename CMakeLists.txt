@@ -9,6 +9,9 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 Netwo
 qt_standard_project_setup(REQUIRES 6.5)
 
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(assets/app-icon.icns PROPERTIES
+    MACOSX_PACKAGE_LOCATION "Resources"
+)
 
 add_library(xscraper_core STATIC
     src/app/ScrapeController.h
@@ -17,11 +20,15 @@ add_library(xscraper_core STATIC
 target_include_directories(xscraper_core PUBLIC src)
 target_link_libraries(xscraper_core PUBLIC Qt6::Core Qt6::Network)
 
-qt_add_executable(xscraper MACOSX_BUNDLE src/main.cpp)
+qt_add_executable(xscraper MACOSX_BUNDLE
+    src/main.cpp
+    assets/app-icon.icns
+)
 set_target_properties(xscraper PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER "com.s4njee.xscraper"
     MACOSX_BUNDLE_BUNDLE_NAME "Xscraper"
     MACOSX_BUNDLE_DISPLAY_NAME "Xscraper"
+    MACOSX_BUNDLE_ICON_FILE "app-icon.icns"
     MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
     MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
 )

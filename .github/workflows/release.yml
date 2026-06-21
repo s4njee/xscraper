@@ -57,3 +57,105 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*
+
+  windows:
+    name: Windows package
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.7.3"
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Deploy Qt runtime
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          windeployqt build\Release\xscraper.exe --qmldir qml
+          Copy-Item LICENSE build\Release\
+          Copy-Item THIRD_PARTY_NOTICES.md build\Release\
+          Copy-Item -Recurse LICENSES build\Release\LICENSES
+          Copy-Item assets\generated\app-icon-256.png build\Release\
+          Compress-Archive -Path build\Release\* -DestinationPath dist\xscraper-windows.zip
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: xscraper-windows
+          path: dist/*
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+
+  linux:
+    name: Linux package
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake ninja-build g++ patchelf \
+            libgl1-mesa-dev libxkbcommon-dev libxcb-cursor0 \
+            libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.7.3"
+
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Package AppDir
+        run: |
+          mkdir -p Xscraper.AppDir/usr/bin \
+                   Xscraper.AppDir/usr/share/applications \
+                   Xscraper.AppDir/usr/share/icons/hicolor/256x256/apps \
+                   Xscraper.AppDir/usr/share/licenses/xscraper
+          cp build/xscraper Xscraper.AppDir/usr/bin/
+          cp assets/generated/app-icon-256.png Xscraper.AppDir/usr/share/icons/hicolor/256x256/apps/xscraper.png
+          cp LICENSE THIRD_PARTY_NOTICES.md Xscraper.AppDir/usr/share/licenses/xscraper/
+          cp -R LICENSES Xscraper.AppDir/usr/share/licenses/xscraper/
+          printf '%s\n' \
+            '[Desktop Entry]' \
+            'Type=Application' \
+            'Name=Xscraper' \
+            'Exec=xscraper' \
+            'Icon=xscraper' \
+            'Categories=Utility;Network;' \
+            > Xscraper.AppDir/usr/share/applications/xscraper.desktop
+          mkdir -p dist
+          tar -C Xscraper.AppDir -czf dist/xscraper-linux.tar.gz .
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: xscraper-linux
+          path: dist/*
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*

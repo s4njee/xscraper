@@ -4,6 +4,10 @@ Small Qt Quick app for exporting X/Twitter posts to JSON.
 
 ## Screenshots
 
+### App icon
+
+![Xscraper app icon](assets/generated/app-icon-128.png)
+
 ### Archive import
 
 ![Archive import mode](docs/screenshots/archive-import.png)

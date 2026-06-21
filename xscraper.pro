@@ -3,6 +3,7 @@ CONFIG += c++20
 
 TARGET = xscraper
 TEMPLATE = app
+ICON = assets/app-icon.icns
 
 INCLUDEPATH += src
 
