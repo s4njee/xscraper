@@ -41,15 +41,14 @@ jobs:
 
       - name: Ad-hoc sign app bundle
         run: |
-          codesign --force --deep --sign - --options runtime build/xscraper.app
+          codesign --force --deep --sign - build/xscraper.app
           codesign --verify --deep --strict --verbose=2 build/xscraper.app
 
       - name: Create packages
         run: |
           mkdir -p dist
           ditto -c -k --sequesterRsrc --keepParent build/xscraper.app dist/xscraper-macos.zip
-          macdeployqt build/xscraper.app -dmg -verbose=1
-          mv build/xscraper.dmg dist/xscraper-macos.dmg
+          hdiutil create -volname Xscraper -srcfolder build/xscraper.app -ov -format UDZO dist/xscraper-macos.dmg
 
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v4

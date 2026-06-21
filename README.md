@@ -110,6 +110,9 @@ If you run it from another folder, replace `/Applications/xscraper.app` with
 the actual app path. A fully notarized release requires Apple Developer Program
 credentials and a Developer ID certificate.
 
+Use `v0.1.6` or newer on macOS. `v0.1.5` was ad-hoc signed with hardened runtime
+enabled, which can make macOS reject the bundled Qt frameworks at launch.
+
 ## Run
 
 ### Free mode: import an X archive
