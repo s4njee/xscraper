@@ -16,9 +16,9 @@ Small Qt Quick app for exporting X/Twitter posts to JSON.
 
 ![API token mode](docs/screenshots/api-token.png)
 
-### Process export
+### Download Media
 
-![Process export mode](docs/screenshots/process-export.png)
+![Download Media mode](docs/screenshots/download-media.png)
 
 ## License
 
@@ -34,7 +34,7 @@ The app has three modes:
 
 - `Archive import`: free local import from an extracted X data archive.
 - `API token`: official X API v2 user posts timeline export.
-- `Process export`: read an Xscraper JSON export, download direct media, and
+- `Download Media`: read an Xscraper JSON export, download direct media, and
   write a pretty `posts.txt`.
 
 Archive import and API token modes write:
@@ -52,21 +52,20 @@ Archive import does not call X at all. API token mode does not use private web
 endpoints or bypass account protections. Protected accounts, deleted posts, rate
 limits, historical access, and paid-tier limits are controlled by X.
 
-Process export mode reads the JSON created by either export mode. It downloads
+Download Media mode reads the JSON created by either export mode. It downloads
 direct media URLs that are already present in the export, such as X image URLs
 and MP4 video variants. It does not crawl arbitrary linked websites.
 
 ## Build
 
-This project follows the CMake/Qt Quick layout used by `ceres`.
+The primary build system is CMake:
 
 ```sh
 cmake -S . -B build
 cmake --build build
 ```
 
-This machine currently has `qmake` but no `cmake` on `PATH`, so a qmake wrapper is also
-included:
+A qmake wrapper is also included for local development:
 
 ```sh
 mkdir -p build-qmake
@@ -158,14 +157,14 @@ When X returns an HTTP 429 rate-limit response, Xscraper waits for the
 that wait the status line will say it is rate limited and show how long it will
 wait. Leave the app open if you want it to continue automatically.
 
-### Process an export
+### Download Media
 
 After API mode or archive import creates a JSON file:
 
-1. Select `Process export`.
+1. Select `Download Media`.
 2. Choose the Xscraper `.json` export file.
 3. Choose an output folder.
-4. Click `Process JSON`.
+4. Click `Download media`.
 
 Xscraper writes:
 

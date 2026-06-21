@@ -80,7 +80,7 @@ ApplicationWindow {
                 }
 
                 Chip {
-                    text: root.archiveMode ? "Archive import" : (root.apiMode ? "X API v2" : "Process export")
+                    text: root.archiveMode ? "Archive import" : (root.apiMode ? "X API v2" : "Download Media")
                     tone: Theme.accent
                 }
 
@@ -179,7 +179,7 @@ ApplicationWindow {
                     spacing: 14
 
                     Text {
-                        text: root.archiveMode ? "X archive import" : (root.apiMode ? "User timeline scrape" : "Process export")
+                        text: root.archiveMode ? "X archive import" : (root.apiMode ? "User timeline scrape" : "Download Media")
                         color: Theme.textPrimary
                         font.pixelSize: 24
                         font.weight: Font.Bold
@@ -203,7 +203,7 @@ ApplicationWindow {
                         FlatButton {
                             text: "Archive import"
                             fill: root.archiveMode ? Theme.accent : Theme.bgTertiary
-                            hoverFill: root.archiveMode ? "#f0815f" : Theme.borderStrong
+                            hoverFill: root.archiveMode ? Theme.accentHover : Theme.borderStrong
                             textColor: root.archiveMode ? Theme.bgPrimary : Theme.textPrimary
                             onClicked: root.mode = "archive"
                         }
@@ -211,15 +211,15 @@ ApplicationWindow {
                         FlatButton {
                             text: "API token"
                             fill: root.apiMode ? Theme.accent : Theme.bgTertiary
-                            hoverFill: root.apiMode ? "#f0815f" : Theme.borderStrong
+                            hoverFill: root.apiMode ? Theme.accentHover : Theme.borderStrong
                             textColor: root.apiMode ? Theme.bgPrimary : Theme.textPrimary
                             onClicked: root.mode = "api"
                         }
 
                         FlatButton {
-                            text: "Process export"
+                            text: "Download Media"
                             fill: root.processMode ? Theme.accent : Theme.bgTertiary
-                            hoverFill: root.processMode ? "#f0815f" : Theme.borderStrong
+                            hoverFill: root.processMode ? Theme.accentHover : Theme.borderStrong
                             textColor: root.processMode ? Theme.bgPrimary : Theme.textPrimary
                             onClicked: root.mode = "process"
                         }
@@ -342,6 +342,22 @@ ApplicationWindow {
                             id: repliesBox
                             checked: false
                             text: "Exclude replies"
+                            indicator: Rectangle {
+                                implicitWidth: 14
+                                implicitHeight: 14
+                                x: repliesBox.leftPadding
+                                y: parent.height / 2 - height / 2
+                                radius: 3
+                                color: repliesBox.checked ? Theme.accent : Theme.bgTertiary
+                                border.color: repliesBox.checked ? Theme.accent : Theme.border
+                                Rectangle {
+                                    width: 8; height: 8
+                                    anchors.centerIn: parent
+                                    radius: 1
+                                    color: Theme.bgPrimary
+                                    visible: repliesBox.checked
+                                }
+                            }
                             contentItem: Text {
                                 text: repliesBox.text
                                 color: Theme.textSecondary
@@ -355,6 +371,22 @@ ApplicationWindow {
                             id: repostsBox
                             checked: false
                             text: "Exclude reposts"
+                            indicator: Rectangle {
+                                implicitWidth: 14
+                                implicitHeight: 14
+                                x: repostsBox.leftPadding
+                                y: parent.height / 2 - height / 2
+                                radius: 3
+                                color: repostsBox.checked ? Theme.accent : Theme.bgTertiary
+                                border.color: repostsBox.checked ? Theme.accent : Theme.border
+                                Rectangle {
+                                    width: 8; height: 8
+                                    anchors.centerIn: parent
+                                    radius: 1
+                                    color: Theme.bgPrimary
+                                    visible: repostsBox.checked
+                                }
+                            }
                             contentItem: Text {
                                 text: repostsBox.text
                                 color: Theme.textSecondary
@@ -371,9 +403,9 @@ ApplicationWindow {
                         spacing: 10
 
                         FlatButton {
-                            text: controller.running ? "Running" : (root.archiveMode ? "Import archive" : (root.apiMode ? "Start export" : "Process JSON"))
+                            text: controller.running ? "Running" : (root.archiveMode ? "Import archive" : (root.apiMode ? "Start export" : "Download media"))
                             fill: Theme.accent
-                            hoverFill: "#f0815f"
+                            hoverFill: Theme.accentHover
                             textColor: Theme.bgPrimary
                             enabled: !controller.running
                             onClicked: {
