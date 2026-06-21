@@ -22,7 +22,6 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           version: "6.7.3"
-          modules: "qtdeclarative"
 
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
