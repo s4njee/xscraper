@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
-import "."
+import XscraperUi
 
 Button {
     id: root

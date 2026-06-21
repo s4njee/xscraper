@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/qt/qml/XscraperUi">
-        <file>qml/qmldir</file>
+        <file alias="qmldir">qml/qmldir</file>
         <file>qml/Main.qml</file>
         <file>qml/Theme.qml</file>
         <file>qml/Field.qml</file>

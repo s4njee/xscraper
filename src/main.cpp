@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
     ScrapeController controller;
 
     QQmlApplicationEngine engine;
+    engine.addImportPath(QStringLiteral("qrc:/qt/qml"));
     engine.rootContext()->setContextProperty(QStringLiteral("controller"), &controller);
 
     QObject::connect(

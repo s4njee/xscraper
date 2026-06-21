@@ -1,1 +1,6 @@
-singleton Theme 1.0 Theme.qml
+module XscraperUi
+singleton Theme 1.0 qml/Theme.qml
+Main 1.0 qml/Main.qml
+Field 1.0 qml/Field.qml
+FlatButton 1.0 qml/FlatButton.qml
+Chip 1.0 qml/Chip.qml
