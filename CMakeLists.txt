@@ -7,9 +7,6 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 Network)
 qt_standard_project_setup(REQUIRES 6.5)
-if(COMMAND qt_policy)
-    qt_policy(SET QTP0004 NEW)
-endif()
 
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
