@@ -48,7 +48,6 @@ jobs:
         run: |
           mkdir -p dist
           ditto -c -k --sequesterRsrc --keepParent build/xscraper.app dist/xscraper-macos.zip
-          hdiutil create -volname Xscraper -srcfolder build/xscraper.app -ov -format UDZO dist/xscraper-macos.dmg
 
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v4

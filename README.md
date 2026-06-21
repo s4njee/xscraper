@@ -88,7 +88,6 @@ git push origin v0.1.0
 The release workflow creates:
 
 - `xscraper-macos.zip`
-- `xscraper-macos.dmg`
 - `xscraper-windows.zip`
 - `xscraper-linux.tar.gz`
 
