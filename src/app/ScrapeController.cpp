@@ -4,8 +4,10 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QHash>
 #include <QJsonDocument>
 #include <QJsonValue>
+#include <QLocale>
 #include <QRegularExpression>
 #include <QTextStream>
 #include <QNetworkReply>
@@ -204,9 +206,11 @@ void ScrapeController::processExport(const QString &exportJsonPath,
     prepareExportProcessing(exportRoot);
     if (!writePostsText(exportRoot))
         return;
+    if (!writePostsHtml(exportRoot))
+        return;
 
     if (m_pendingDownloads.isEmpty()) {
-        setStatus(QStringLiteral("Wrote posts.txt; no media URLs found"));
+        setStatus(QStringLiteral("Wrote posts.txt and posts.html; no media URLs found"));
         setRunning(false);
         emit finished(true);
         return;
@@ -668,6 +672,152 @@ bool ScrapeController::writePostsText(const QJsonObject &exportRoot)
     return true;
 }
 
+bool ScrapeController::writePostsHtml(const QJsonObject &exportRoot)
+{
+    QDir dir(m_outputDirectory);
+    const auto path = dir.filePath(QStringLiteral("posts.html"));
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
+        finishWithError(QStringLiteral("Could not write posts.html."));
+        return false;
+    }
+
+    // Map each post id to the media files the downloader is about to fetch, so
+    // the HTML references the exact local paths that will exist on disk.
+    QHash<QString, QVector<QPair<QString, bool>>> mediaByPost;
+    for (const auto &download : m_pendingDownloads) {
+        const auto rel = dir.relativeFilePath(download.path);
+        const auto ext = QFileInfo(download.path).suffix().toLower();
+        const bool isVideo = ext == QStringLiteral("mp4") || ext == QStringLiteral("m4v")
+            || ext == QStringLiteral("mov") || ext == QStringLiteral("webm");
+        mediaByPost[download.postId].append({ rel, isVideo });
+    }
+
+    const auto handle = exportUsername(exportRoot);
+    const auto user = objectAt(exportRoot, QStringLiteral("user"));
+    auto name = user.value(QStringLiteral("name")).toString();
+    if (name.isEmpty())
+        name = objectAt(user, QStringLiteral("archive_account")).value(QStringLiteral("accountDisplayName")).toString();
+    if (name.isEmpty())
+        name = handle.isEmpty() ? QStringLiteral("X export") : handle;
+    auto avatar = user.value(QStringLiteral("profile_image_url")).toString();
+    avatar.replace(QStringLiteral("_normal"), QStringLiteral("_400x400"));
+
+    const auto nameEsc = name.toHtmlEscaped();
+    const auto handleEsc = handle.toHtmlEscaped();
+    const auto avatarEsc = avatar.toHtmlEscaped();
+
+    QTextStream out(&file);
+    out << "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n";
+    out << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n";
+    out << "<title>" << (handle.isEmpty() ? nameEsc : QStringLiteral("@%1").arg(handleEsc)) << " \xC2\xB7 Xscraper</title>\n";
+    out << R"CSS(<style>
+:root{--bg:#000;--card:#16181c;--border:#2f3336;--text:#e7e9ea;--muted:#71767b;--accent:#1d9bf0;}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.45;}
+a{color:var(--accent);text-decoration:none;}
+a:hover{text-decoration:underline;}
+.wrap{max-width:600px;margin:0 auto;border-left:1px solid var(--border);border-right:1px solid var(--border);min-height:100vh;}
+.profile{display:flex;gap:12px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(0,0,0,.85);backdrop-filter:blur(10px);z-index:1;}
+.avatar{width:48px;height:48px;border-radius:50%;object-fit:cover;background:var(--border);flex:none;}
+.pname{font-weight:800;font-size:20px;line-height:1.2;}
+.phandle{color:var(--muted);font-size:14px;}
+.profile .meta{margin-left:auto;color:var(--muted);font-size:13px;}
+.tweet{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);}
+.tweet:hover{background:#080808;}
+.tweet .avatar{width:40px;height:40px;}
+.body{flex:1;min-width:0;}
+.head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px;font-size:15px;}
+.head .name{font-weight:700;}
+.head .handle,.head .time{color:var(--muted);}
+.head .time{margin-left:auto;white-space:nowrap;}
+.text{margin-top:2px;font-size:15px;white-space:pre-wrap;overflow-wrap:anywhere;}
+.media{margin-top:10px;display:grid;gap:3px;border-radius:16px;overflow:hidden;border:1px solid var(--border);}
+.media.n1{grid-template-columns:1fr;}
+.media.n2,.media.n3,.media.n4{grid-template-columns:1fr 1fr;}
+.media img,.media video{width:100%;height:100%;max-height:520px;object-fit:cover;display:block;background:#000;cursor:pointer;}
+.media.n1 img,.media.n1 video{max-height:600px;object-fit:contain;}
+.actions{display:flex;gap:28px;margin-top:10px;color:var(--muted);font-size:13px;}
+.actions a{color:var(--muted);}
+.empty,.footer{padding:32px 16px;text-align:center;color:var(--muted);font-size:13px;}
+</style>
+)CSS";
+    out << "</head>\n<body>\n<main class=\"wrap\">\n";
+
+    out << "<header class=\"profile\">\n";
+    if (!avatar.isEmpty())
+        out << "<img class=\"avatar\" src=\"" << avatarEsc << "\" alt=\"\" onerror=\"this.style.visibility='hidden'\">\n";
+    out << "<div><div class=\"pname\">" << nameEsc << "</div>";
+    if (!handle.isEmpty())
+        out << "<div class=\"phandle\"><a href=\"https://x.com/" << handleEsc << "\" target=\"_blank\" rel=\"noopener\">@" << handleEsc << "</a></div>";
+    out << "</div>\n<div class=\"meta\">" << m_posts.size() << " posts</div>\n</header>\n";
+
+    if (m_posts.isEmpty())
+        out << "<div class=\"empty\">No posts.</div>\n";
+
+    for (const auto &value : m_posts) {
+        const auto post = value.toObject();
+        const auto id = post.value(QStringLiteral("id")).toString();
+        const auto url = postUrl(post, handle);
+        const auto urlEsc = url.toHtmlEscaped();
+        const auto time = formatTimestamp(post.value(QStringLiteral("created_at")).toString());
+
+        out << "<article class=\"tweet\">\n";
+        if (!avatar.isEmpty())
+            out << "<img class=\"avatar\" src=\"" << avatarEsc << "\" alt=\"\" onerror=\"this.style.visibility='hidden'\">\n";
+        out << "<div class=\"body\">\n<div class=\"head\"><span class=\"name\">" << nameEsc << "</span>";
+        if (!handle.isEmpty())
+            out << "<span class=\"handle\">@" << handleEsc << "</span>";
+        if (!time.isEmpty()) {
+            if (!url.isEmpty())
+                out << "<a class=\"time\" href=\"" << urlEsc << "\" target=\"_blank\" rel=\"noopener\">" << time.toHtmlEscaped() << "</a>";
+            else
+                out << "<span class=\"time\">" << time.toHtmlEscaped() << "</span>";
+        }
+        out << "</div>\n";
+
+        const auto body = linkifyText(post);
+        if (!body.isEmpty())
+            out << "<div class=\"text\">" << body << "</div>\n";
+
+        const auto media = mediaByPost.value(id);
+        if (!media.isEmpty()) {
+            out << "<div class=\"media n" << qMin(4, media.size()) << "\">\n";
+            for (const auto &item : media) {
+                const auto rel = item.first.toHtmlEscaped();
+                if (item.second)
+                    out << "<video controls preload=\"metadata\" src=\"" << rel << "\" onerror=\"this.style.display='none'\"></video>\n";
+                else
+                    out << "<a href=\"" << rel << "\" target=\"_blank\" rel=\"noopener\"><img loading=\"lazy\" src=\"" << rel << "\" alt=\"\" onerror=\"this.parentElement.style.display='none'\"></a>\n";
+            }
+            out << "</div>\n";
+        }
+
+        const auto metrics = objectAt(post, QStringLiteral("public_metrics"));
+        const int replies = metrics.value(QStringLiteral("reply_count")).toInt();
+        const int reposts = metrics.contains(QStringLiteral("retweet_count"))
+            ? metrics.value(QStringLiteral("retweet_count")).toInt()
+            : post.value(QStringLiteral("retweet_count")).toInt();
+        const int likes = metrics.contains(QStringLiteral("like_count"))
+            ? metrics.value(QStringLiteral("like_count")).toInt()
+            : post.value(QStringLiteral("favorite_count")).toInt();
+        out << "<div class=\"actions\">";
+        out << "<span>" << QStringLiteral(u"↩ ") << replies << "</span>";
+        out << "<span>" << QStringLiteral(u"⇄ ") << reposts << "</span>";
+        out << "<span>" << QStringLiteral(u"♥ ") << likes << "</span>";
+        if (!url.isEmpty())
+            out << "<a href=\"" << urlEsc << "\" target=\"_blank\" rel=\"noopener\">Open on X</a>";
+        out << "</div>\n</div>\n</article>\n";
+    }
+
+    out << "<footer class=\"footer\">Generated by Xscraper \xC2\xB7 "
+        << QDateTime::currentDateTimeUtc().toString(Qt::ISODate) << "</footer>\n";
+    out << "</main>\n</body>\n</html>\n";
+
+    setOutputPath(path);
+    return true;
+}
+
 void ScrapeController::downloadNextMedia()
 {
     if (!m_running)
@@ -676,7 +826,7 @@ void ScrapeController::downloadNextMedia()
     if (m_pendingDownloads.isEmpty()) {
         m_currentMedia.clear();
         emit mediaProgressChanged();
-        setStatus(QStringLiteral("Wrote posts.txt and downloaded %1/%2 media files%3")
+        setStatus(QStringLiteral("Wrote posts.txt, posts.html, and downloaded %1/%2 media files%3")
                       .arg(m_completedDownloads)
                       .arg(m_totalDownloads)
                       .arg(m_failedDownloads > 0 ? QStringLiteral(" (%1 failed)").arg(m_failedDownloads) : QString()));
@@ -937,6 +1087,58 @@ QString ScrapeController::displayText(const QJsonObject &post)
     if (!noteText.isEmpty())
         text = noteText;
     return text;
+}
+
+QString ScrapeController::linkifyText(const QJsonObject &post)
+{
+    QString text = displayText(post).trimmed().toHtmlEscaped();
+    if (text.isEmpty())
+        return text;
+
+    static const QRegularExpression mention(QStringLiteral("(?<![\\w@/])@(\\w+)"));
+    text.replace(mention, QStringLiteral("<a href=\"https://x.com/\\1\" target=\"_blank\" rel=\"noopener\">@\\1</a>"));
+
+    static const QRegularExpression hashtag(QStringLiteral("(?<!\\w)([#＃])(\\w+)"));
+    text.replace(hashtag, QStringLiteral("<a href=\"https://x.com/hashtag/\\2\" target=\"_blank\" rel=\"noopener\">\\1\\2</a>"));
+
+    // Replace each t.co short link with an anchor to the expanded destination.
+    QJsonArray urls = arrayAt(objectAt(post, QStringLiteral("entities")), QStringLiteral("urls"));
+    for (const auto &value : arrayAt(objectAt(objectAt(post, QStringLiteral("note_tweet")), QStringLiteral("entities")), QStringLiteral("urls")))
+        urls.append(value);
+
+    for (const auto &value : urls) {
+        const auto link = value.toObject();
+        const auto shortUrl = link.value(QStringLiteral("url")).toString();
+        if (shortUrl.isEmpty())
+            continue;
+        const auto expanded = link.value(QStringLiteral("expanded_url")).toString(
+            link.value(QStringLiteral("unwound_url")).toString(shortUrl));
+        auto display = link.value(QStringLiteral("display_url")).toString();
+        if (display.isEmpty())
+            display = expanded;
+        const auto anchor = QStringLiteral("<a href=\"%1\" target=\"_blank\" rel=\"noopener\">%2</a>")
+                                .arg(expanded.toHtmlEscaped(), display.toHtmlEscaped());
+        text.replace(shortUrl.toHtmlEscaped(), anchor);
+    }
+
+    return text;
+}
+
+QString ScrapeController::formatTimestamp(const QString &raw)
+{
+    if (raw.isEmpty())
+        return {};
+
+    QDateTime dt = QDateTime::fromString(raw, Qt::ISODateWithMs);
+    if (!dt.isValid())
+        dt = QDateTime::fromString(raw, Qt::ISODate);
+    if (!dt.isValid())
+        dt = QLocale(QLocale::English).toDateTime(raw, QStringLiteral("ddd MMM dd HH:mm:ss +0000 yyyy"));
+    if (!dt.isValid())
+        return raw;
+
+    dt.setTimeSpec(Qt::UTC);
+    return dt.toString(QStringLiteral("MMM d, yyyy"));
 }
 
 QString ScrapeController::sanitizeFilePart(QString text)

@@ -124,7 +124,7 @@ ApplicationWindow {
                               ? "Import posts, links, and embedded media references from an extracted X archive folder."
                               : (root.apiMode
                                  ? "Collect a user's public posts, URL entities, expanded link metadata when X provides it, and embedded media references."
-                                 : "Read an Xscraper JSON export, download direct image/video media, and write a pretty posts.txt.")
+                                 : "Read an Xscraper JSON export, download direct image/video media, and write a pretty posts.txt and posts.html.")
                         color: Theme.textSecondary
                         wrapMode: Text.WordWrap
                         font.pixelSize: 13
@@ -190,7 +190,7 @@ ApplicationWindow {
                               ? "Select the folder created when you unzip your X data archive. Xscraper reads the local archive files and writes a normalized JSON export."
                               : (root.apiMode
                                  ? "Enter a username and bearer token from an X developer app. The export is written as JSON so you can process it later without losing raw API data."
-                                 : "Select an Xscraper JSON export. The app writes posts.txt and downloads images/videos into a media folder.")
+                                 : "Select an Xscraper JSON export. The app writes posts.txt, an X-style posts.html, and downloads images/videos into a media folder.")
                         color: Theme.textSecondary
                         wrapMode: Text.WordWrap
                         font.pixelSize: 13

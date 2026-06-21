@@ -35,7 +35,7 @@ The app has three modes:
 - `Archive import`: free local import from an extracted X data archive.
 - `API token`: official X API v2 user posts timeline export.
 - `Download Media`: read an Xscraper JSON export, download direct media, and
-  write a pretty `posts.txt`.
+  write a pretty `posts.txt` and an X-style `posts.html`.
 
 Archive import and API token modes write:
 
@@ -170,6 +170,8 @@ Xscraper writes:
 
 - `posts.txt`: a readable text file with post number, date, ID, URL, text,
   linked URLs, and media references.
+- `posts.html`: a self-contained X-style page with clickable links, mentions,
+  hashtags, and the downloaded media rendered inline.
 - `media/`: downloaded images and videos found in the export.
 
 Media files are named from the post ID, for example:

@@ -76,6 +76,7 @@ private:
     bool importArchiveFiles(const QString &archiveDirectory);
     void prepareExportProcessing(const QJsonObject &exportRoot);
     bool writePostsText(const QJsonObject &exportRoot);
+    bool writePostsHtml(const QJsonObject &exportRoot);
     void downloadNextMedia();
     void handleMediaReply(QNetworkReply *reply, const QString &path);
     void finishOk();
@@ -92,6 +93,8 @@ private:
     static QString exportUsername(const QJsonObject &exportRoot);
     static QString postUrl(const QJsonObject &post, const QString &username);
     static QString displayText(const QJsonObject &post);
+    static QString linkifyText(const QJsonObject &post);
+    static QString formatTimestamp(const QString &raw);
     static QString sanitizeFilePart(QString text);
     static QString extensionForUrl(const QUrl &url, const QString &fallback);
     static QJsonArray mediaItemsForPost(const QJsonObject &post, const QJsonObject &mediaByKey);
