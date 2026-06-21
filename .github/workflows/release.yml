@@ -39,6 +39,11 @@ jobs:
           cp THIRD_PARTY_NOTICES.md build/xscraper.app/Contents/Resources/licenses/
           cp -R LICENSES build/xscraper.app/Contents/Resources/licenses/
 
+      - name: Ad-hoc sign app bundle
+        run: |
+          codesign --force --deep --sign - --options runtime build/xscraper.app
+          codesign --verify --deep --strict --verbose=2 build/xscraper.app
+
       - name: Create packages
         run: |
           mkdir -p dist

@@ -77,7 +77,8 @@ open build-qmake/xscraper.app
 
 ## Release
 
-GitHub Actions builds a macOS package when you push a tag beginning with `v`.
+GitHub Actions builds macOS, Windows, and Linux packages when you push a tag
+beginning with `v`.
 
 ```sh
 git tag v0.1.0
@@ -88,8 +89,26 @@ The release workflow creates:
 
 - `xscraper-macos.zip`
 - `xscraper-macos.dmg`
+- `xscraper-windows.zip`
+- `xscraper-linux.tar.gz`
 
 You can also run the release workflow manually from the GitHub Actions tab.
+
+### macOS Gatekeeper
+
+The public GitHub release is ad-hoc signed, but it is not notarized with an
+Apple Developer ID. On some Macs, downloaded builds may still be blocked by
+Gatekeeper. If macOS says `xscraper` is damaged or cannot be opened, remove the
+download quarantine attribute after you have verified that you downloaded it
+from this repository:
+
+```sh
+xattr -dr com.apple.quarantine /Applications/xscraper.app
+```
+
+If you run it from another folder, replace `/Applications/xscraper.app` with
+the actual app path. A fully notarized release requires Apple Developer Program
+credentials and a Developer ID certificate.
 
 ## Run
 
