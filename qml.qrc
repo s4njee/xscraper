@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/qt/qml/XscraperUi">
+        <file>qml/qmldir</file>
+        <file>qml/Main.qml</file>
+        <file>qml/Theme.qml</file>
+        <file>qml/Field.qml</file>
+        <file>qml/FlatButton.qml</file>
+        <file>qml/Chip.qml</file>
+    </qresource>
+</RCC>

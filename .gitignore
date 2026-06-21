@@ -1,0 +1,9 @@
+build/
+build-*/
+*.app/
+*.o
+Makefile
+.qmake.stash
+moc_*.cpp
+moc_predefs.h
+qrc_*.cpp
