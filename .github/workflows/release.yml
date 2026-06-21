@@ -30,7 +30,7 @@ jobs:
         run: cmake --build build --config Release --parallel
 
       - name: Deploy Qt frameworks
-        run: macdeployqt build/xscraper.app -verbose=1
+        run: macdeployqt build/xscraper.app -qmldir=qml -verbose=1
 
       - name: Add license notices
         run: |
