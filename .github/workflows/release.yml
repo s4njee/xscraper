@@ -32,6 +32,13 @@ jobs:
       - name: Deploy Qt frameworks
         run: macdeployqt build/xscraper.app -verbose=1
 
+      - name: Add license notices
+        run: |
+          mkdir -p build/xscraper.app/Contents/Resources/licenses
+          cp LICENSE build/xscraper.app/Contents/Resources/licenses/
+          cp THIRD_PARTY_NOTICES.md build/xscraper.app/Contents/Resources/licenses/
+          cp -R LICENSES build/xscraper.app/Contents/Resources/licenses/
+
       - name: Create packages
         run: |
           mkdir -p dist

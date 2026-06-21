@@ -2,14 +2,38 @@
 
 Small Qt Quick app for exporting X/Twitter posts to JSON.
 
-The app has two modes:
+## Screenshots
+
+### Archive import
+
+![Archive import mode](docs/screenshots/archive-import.png)
+
+### API token
+
+![API token mode](docs/screenshots/api-token.png)
+
+### Process export
+
+![Process export mode](docs/screenshots/process-export.png)
+
+## License
+
+Xscraper is licensed under the MIT License. See [LICENSE](LICENSE).
+
+The release bundles Qt runtime frameworks. Qt is available under commercial
+and open-source licenses; this project uses dynamically linked Qt frameworks
+under the open-source LGPLv3 path for the Qt modules it depends on. See
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and
+[LICENSES/LGPL-3.0-only.txt](LICENSES/LGPL-3.0-only.txt).
+
+The app has three modes:
 
 - `Archive import`: free local import from an extracted X data archive.
 - `API token`: official X API v2 user posts timeline export.
 - `Process export`: read an Xscraper JSON export, download direct media, and
   write a pretty `posts.txt`.
 
-Both modes write:
+Archive import and API token modes write:
 
 - post text and structured post fields
 - URL entities as `linked_content`
