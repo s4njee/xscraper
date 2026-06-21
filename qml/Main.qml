@@ -13,7 +13,9 @@ ApplicationWindow {
     minimumHeight: 500
     visible: true
     title: qsTr("Xscraper")
-    color: Theme.bgPrimary
+    background: Rectangle {
+        color: Theme.bgPrimary
+    }
 
     property string mode: "archive"
     property bool archiveMode: mode === "archive"
